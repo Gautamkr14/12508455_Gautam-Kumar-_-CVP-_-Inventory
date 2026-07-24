@@ -1,0 +1,1735 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="google" content="notranslate">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lay's Potato Chips CVP and Inventory Dashboard</title>
+
+  <!-- Google Fonts & Chart.js CDN -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --lays-yellow: #FDB813;
+      --lays-red: #E31837;
+      --lays-red-hover: #C1102A;
+      --lays-dark: #1E1005;
+      --lays-card-bg: #FFFFFF;
+      --lays-body-bg: #F9F6F0;
+      --lays-border: #E8E2D5;
+      --lays-muted: #6C757D;
+      --lays-success: #28A745;
+      --lays-warning: #FFC107;
+      --lays-info: #17A2B8;
+      --font-main: 'Poppins', sans-serif;
+      --font-mono: 'Roboto Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-main);
+      background-color: var(--lays-body-bg);
+      color: var(--lays-dark);
+      line-height: 1.5;
+      padding-bottom: 40px;
+    }
+
+    /* Header & Navigation */
+    header {
+      background: linear-gradient(135deg, var(--lays-yellow) 0%, #FF9900 100%);
+      color: var(--lays-dark);
+      padding: 24px 32px 16px 32px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      border-bottom: 4px solid var(--lays-red);
+    }
+
+    .header-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .brand-title-group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-badge {
+      background-color: var(--lays-red);
+      color: white;
+      font-weight: 800;
+      font-size: 1.2rem;
+      padding: 6px 16px;
+      border-radius: 50px;
+      letter-spacing: 1px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      font-weight: 500;
+      opacity: 0.85;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.4);
+      padding: 6px;
+      border-radius: 12px;
+      backdrop-filter: blur(5px);
+    }
+
+    .tab-btn {
+      border: none;
+      background: transparent;
+      padding: 10px 20px;
+      font-family: var(--font-main);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--lays-dark);
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background-color: var(--lays-red);
+      color: white;
+      box-shadow: 0 3px 8px rgba(227, 24, 55, 0.3);
+    }
+
+    /* Main Container */
+    main {
+      max-width: 1400px;
+      margin: 24px auto 0 auto;
+      padding: 0 24px;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Layout Grids */
+    .grid-cvp {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 24px;
+    }
+
+    .grid-inventory {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 1024px) {
+      .grid-cvp, .grid-inventory {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Card Styling */
+    .card {
+      background-color: var(--lays-card-bg);
+      border-radius: 16px;
+      border: 1px solid var(--lays-border);
+      padding: 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+      margin-bottom: 24px;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--lays-dark);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid var(--lays-body-bg);
+      padding-bottom: 10px;
+    }
+
+    /* Form Controls */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--lays-dark);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-prefix {
+      position: absolute;
+      left: 12px;
+      font-weight: 600;
+      color: var(--lays-muted);
+      font-size: 0.9rem;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px 12px 10px 28px;
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      border: 1px solid var(--lays-border);
+      border-radius: 8px;
+      background-color: #FAFAFA;
+      color: var(--lays-dark);
+      transition: all 0.2s ease;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--lays-red);
+      background-color: #FFF;
+      box-shadow: 0 0 0 3px rgba(227, 24, 55, 0.1);
+    }
+
+    .form-control.no-prefix {
+      padding-left: 12px;
+    }
+
+    .hint-text {
+      font-size: 0.75rem;
+      color: var(--lays-muted);
+      margin-top: 4px;
+    }
+
+    /* Scorecards */
+    .scorecard-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 18px;
+      border-left: 5px solid var(--lays-yellow);
+      border-top: 1px solid var(--lays-border);
+      border-right: 1px solid var(--lays-border);
+      border-bottom: 1px solid var(--lays-border);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    }
+
+    .stat-card.accent {
+      border-left-color: var(--lays-red);
+    }
+
+    .stat-card.info {
+      border-left-color: var(--lays-info);
+    }
+
+    .stat-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--lays-muted);
+      letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+      font-family: var(--font-mono);
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--lays-dark);
+      margin: 6px 0;
+    }
+
+    .stat-formula {
+      font-size: 0.72rem;
+      color: #555;
+      background: #F4F1EA;
+      padding: 4px 8px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    /* Charts Container */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    .chart-box {
+      position: relative;
+      height: 340px;
+      width: 100%;
+    }
+
+    .chart-box-small {
+      position: relative;
+      height: 260px;
+      width: 100%;
+    }
+
+    .chart-caption {
+      margin-top: 12px;
+      font-size: 0.85rem;
+      color: #444;
+      background-color: #F8F5EF;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border-left: 3px solid var(--lays-yellow);
+    }
+
+    /* Tables */
+    .table-responsive {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      text-align: left;
+    }
+
+    th {
+      background-color: #F4F0E6;
+      color: var(--lays-dark);
+      font-weight: 700;
+      padding: 10px 12px;
+      border-bottom: 2px solid var(--lays-border);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--lays-border);
+      font-family: var(--font-main);
+    }
+
+    tr:hover {
+      background-color: #FAF8F3;
+    }
+
+    td.mono {
+      font-family: var(--font-mono);
+    }
+
+    .row-highlight {
+      background-color: #FFF3CD !important;
+      font-weight: bold;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 16px;
+      font-family: var(--font-main);
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background-color: var(--lays-red);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--lays-red-hover);
+    }
+
+    .btn-secondary {
+      background-color: #E2DCD0;
+      color: var(--lays-dark);
+    }
+
+    .btn-secondary:hover {
+      background-color: #D3CBBD;
+    }
+
+    .btn-sm {
+      padding: 4px 8px;
+      font-size: 0.75rem;
+      margin-right: 4px;
+    }
+
+    .btn-danger {
+      background-color: #DC3545;
+      color: white;
+    }
+
+    /* Stock Status Custom Bar */
+    .stock-visualizer {
+      margin: 20px 0 10px 0;
+      position: relative;
+    }
+
+    .stock-bar-bg {
+      height: 28px;
+      background-color: #E9ECEF;
+      border-radius: 14px;
+      position: relative;
+      overflow: visible;
+      border: 1px solid var(--lays-border);
+    }
+
+    .stock-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #28A745 0%, var(--lays-yellow) 100%);
+      border-radius: 14px;
+      transition: width 0.4s ease;
+    }
+
+    .stock-bar-fill.warning {
+      background: linear-gradient(90deg, #DC3545 0%, #FFC107 100%);
+    }
+
+    .marker {
+      position: absolute;
+      top: -10px;
+      bottom: -10px;
+      width: 3px;
+      background-color: var(--lays-dark);
+      z-index: 5;
+    }
+
+    .marker-label {
+      position: absolute;
+      top: -24px;
+      transform: translateX(-50%);
+      font-size: 0.7rem;
+      font-weight: 700;
+      white-space: nowrap;
+      background: #1E1005;
+      color: white;
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    .marker.rop-marker {
+      background-color: var(--lays-red);
+    }
+
+    .marker.rop-marker .marker-label {
+      background-color: var(--lays-red);
+    }
+
+    /* Alert Banners */
+    .alert-banner {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .alert-banner.healthy {
+      background-color: #D4EDDA;
+      color: #155724;
+      border: 1px solid #C3E6CB;
+    }
+
+    .alert-banner.warning {
+      background-color: #F8D7DA;
+      color: #721C24;
+      border: 1px solid #F5C6CB;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(227, 24, 55, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(227, 24, 55, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(227, 24, 55, 0); }
+    }
+
+    /* Assumptions Accordion / Box */
+    .assumption-box {
+      background: #FFFBF0;
+      border: 1px dashed var(--lays-yellow);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 0.8rem;
+      margin-top: 12px;
+    }
+
+    .assumption-title {
+      font-weight: 700;
+      color: #856404;
+      margin-bottom: 4px;
+    }
+
+    /* Modals & Inline Editors */
+    .inline-edit-row input, .inline-edit-row select {
+      padding: 4px 6px;
+      font-size: 0.8rem;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-container">
+      <div class="brand-title-group">
+        <div class="brand-badge">Lay's</div>
+        <div>
+          <h1>Lay's Potato Chips CVP and Inventory Dashboard</h1>
+          <div class="subtitle">Product Focus: Lay's Classic Salted 50g Pack | Manufacturing & Distribution Operations</div>
+        </div>
+      </div>
+
+      <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('cvp')">CVP Dashboard</button>
+        <button class="tab-btn" onclick="switchTab('inventory')">Inventory System</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main>
+
+    <!-- ========================================== -->
+    <!-- TASK 1: CVP & BREAK-EVEN DASHBOARD        -->
+    <!-- ========================================== -->
+    <div id="cvp-tab" class="tab-content active">
+      
+      <!-- SCORECARDS ROW -->
+      <div class="scorecard-row">
+        <div class="stat-card accent">
+          <div class="stat-label">Break-Even Point (Units)</div>
+          <div class="stat-value" id="card-bep-units">0</div>
+          <div class="stat-formula">Formula: Fixed Costs / CM per Unit</div>
+        </div>
+
+        <div class="stat-card accent">
+          <div class="stat-label">Break-Even Revenue</div>
+          <div class="stat-value" id="card-bep-revenue">₹0</div>
+          <div class="stat-formula">Formula: BEP Units × Selling Price</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">Contribution Margin Ratio</div>
+          <div class="stat-value" id="card-cm-ratio">0.0%</div>
+          <div class="stat-formula">Formula: (CM per Unit / Price) × 100</div>
+        </div>
+
+        <div class="stat-card info">
+          <div class="stat-label">Margin of Safety</div>
+          <div class="stat-value" id="card-mos-val">0 units (0%)</div>
+          <div class="stat-formula">Formula: (Current Sales - BEP Sales)</div>
+        </div>
+      </div>
+
+      <div class="grid-cvp">
+        <!-- LEFT: INPUT PANEL -->
+        <div class="sidebar">
+          <div class="card">
+            <div class="card-title">
+              <span>CVP Live Inputs</span>
+              <span style="font-size:0.75rem; font-weight:400; color:var(--lays-muted);">Editable</span>
+            </div>
+
+            <div class="form-group">
+              <label for="input-price">Selling Price per Unit (₹)</label>
+              <div class="input-wrapper">
+                <span class="input-prefix">₹</span>
+                <input type="number" id="input-price" class="form-control" value="20.00" step="0.5" oninput="updateCVP()">
+              </div>
+              <div class="hint-text">Standard MRP for 50g Lay's pouch</div>
+            </div>
+
+            <div class="form-group">
+              <label for="input-vc">Variable Cost per Unit (₹)</label>
+              <div class="input-wrapper">
+                <span class="input-prefix">₹</span>
+                <input type="number" id="input-vc" class="form-control" value="11.20" step="0.1" oninput="updateCVP()">
+              </div>
+              <div class="hint-text">Includes raw potatoes, palm oil, seasoning, foil film packaging & batch distribution</div>
+            </div>
+
+            <div class="form-group">
+              <label for="input-fc">Total Fixed Costs (Monthly ₹)</label>
+              <div class="input-wrapper">
+                <span class="input-prefix">₹</span>
+                <input type="number" id="input-fc" class="form-control" value="350000" step="5000" oninput="updateCVP()">
+              </div>
+              <div class="hint-text">Plant lease, supervisor salaries, equipment depreciation & utilities</div>
+            </div>
+
+            <div class="form-group">
+              <label for="input-sales">Current Sales Volume (Units)</label>
+              <div class="input-wrapper">
+                <input type="number" id="input-sales" class="form-control no-prefix" value="65000" step="1000" oninput="updateCVP()">
+              </div>
+              <div class="hint-text">Estimated monthly factory batch output (packs)</div>
+            </div>
+
+            <div class="form-group">
+              <label for="input-target">Target Profit (Optional ₹)</label>
+              <div class="input-wrapper">
+                <span class="input-prefix">₹</span>
+                <input type="number" id="input-target" class="form-control" value="150000" step="5000" oninput="updateCVP()">
+              </div>
+              <div class="hint-text">Desired net monthly profit goal</div>
+            </div>
+
+            <div class="assumption-box">
+              <div class="assumption-title">Product Input Breakdown (Lay's 50g)</div>
+              • Fresh Potatoes (Chip-grade): ₹4.20<br>
+              • Palmolein / Sunflower Oil: ₹2.80<br>
+              • Seasoning & Salt: ₹0.70<br>
+              • Multi-layer Nitrogen Foil Pack: ₹1.80<br>
+              • Direct Labor & Variable Freight: ₹1.70<br>
+              <strong>Total Direct Input: ₹11.20 / pack</strong>
+            </div>
+          </div>
+
+          <!-- KEY DERIVED METRICS -->
+          <div class="card">
+            <div class="card-title">Key CVP Summary</div>
+            <table style="font-size:0.85rem;">
+              <tr>
+                <td>CM per Unit:</td>
+                <td class="mono" style="font-weight:700;" id="calc-cm-unit">₹0.00</td>
+              </tr>
+              <tr>
+                <td>Operating Leverage (DOL):</td>
+                <td class="mono" style="font-weight:700;" id="calc-dol">0.00</td>
+              </tr>
+              <tr>
+                <td>Target Profit Volume:</td>
+                <td class="mono" style="font-weight:700;" id="calc-target-units">0 units</td>
+              </tr>
+              <tr>
+                <td>Target Profit Revenue:</td>
+                <td class="mono" style="font-weight:700;" id="calc-target-rev">₹0</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- RIGHT: CHARTS & SENSITIVITY -->
+        <div>
+          <!-- CHART 1: CLASSIC CVP -->
+          <div class="card">
+            <div class="card-title">Cost-Volume-Profit (CVP) Break-Even Chart</div>
+            <div class="chart-box">
+              <canvas id="cvpChart"></canvas>
+            </div>
+            <div class="chart-caption" id="cvp-chart-caption">
+              The Break-Even Point occurs where Total Revenue equals Total Cost. Shaded regions depict the Loss Zone (left) and Profit Zone (right).
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+            <!-- CHART 2: PER-UNIT DONUT -->
+            <div class="card">
+              <div class="card-title">Price Breakdown per Pack</div>
+              <div class="chart-box-small">
+                <canvas id="donutChart"></canvas>
+              </div>
+              <div class="chart-caption" id="donut-caption">
+                Every ₹20.00 pack sold contributes ₹8.80 toward covering fixed plant overheads.
+              </div>
+            </div>
+
+            <!-- CHART 3: TOTAL STACKED BAR -->
+            <div class="card">
+              <div class="card-title">Revenue vs. Cost Structure</div>
+              <div class="chart-box-small">
+                <canvas id="stackedBarChart"></canvas>
+              </div>
+              <div class="chart-caption" id="stacked-caption">
+                At current volume, Total Revenue exceeds Total Costs, yielding a net profit.
+              </div>
+            </div>
+          </div>
+
+          <!-- SENSITIVITY TABLE -->
+          <div class="card">
+            <div class="card-title">Sensitivity / What-If Analysis (Break-Even Units)</div>
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Variable Changed</th>
+                    <th>-20% Change</th>
+                    <th>-10% Change</th>
+                    <th>-5% Change</th>
+                    <th class="row-highlight">Base Case</th>
+                    <th>+5% Change</th>
+                    <th>+10% Change</th>
+                    <th>+20% Change</th>
+                  </tr>
+                </thead>
+                <tbody id="sensitivity-tbody">
+                  <!-- Dynamically Generated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- TASK 2: INVENTORY MANAGEMENT SYSTEM        -->
+    <!-- ========================================== -->
+    <div id="inventory-tab" class="tab-content">
+      
+      <!-- HEALTH BANNER -->
+      <div id="inventory-health-banner" class="alert-banner healthy">
+        <span id="health-icon" style="font-size:1.2rem;">✓</span>
+        <span id="health-text">System Healthy: Stock levels are above the Reorder Point.</span>
+      </div>
+
+      <div class="grid-inventory">
+        <!-- LEFT: CONTROL & ASSUMPTIONS PANEL -->
+        <aside>
+          <!-- EOQ & ROP PARAMETERS -->
+          <div class="card">
+            <div class="card-title">Inventory Controls & ROP / EOQ</div>
+            
+            <div class="form-group">
+              <label for="inv-valuation-method">Primary Valuation Method</label>
+              <select id="inv-valuation-method" class="form-control no-prefix" onchange="recalculateInventorySystem()">
+                <option value="FIFO">FIFO (First-In, First-Out)</option>
+                <option value="LIFO">LIFO (Last-In, First-Out)</option>
+                <option value="WAC" selected>Weighted Average Cost (WAC)</option>
+              </select>
+              <div class="hint-text">Drives Stock Ledger OUT valuation & closing inventory balance live</div>
+            </div>
+
+            <hr style="margin: 16px 0; border:0; border-top:1px solid var(--lays-border);">
+
+            <div class="form-group">
+              <label for="input-demand">Annual Demand Rate (D)</label>
+              <div class="input-wrapper">
+                <input type="number" id="input-demand" class="form-control no-prefix" value="780000" oninput="recalculateInventorySystem()">
+              </div>
+              <div class="hint-text">Units/year (Assumes 2,500 packs/day over 312 working days)</div>
+            </div>
+
+            <div class="form-group">
+              <label for="input-leadtime">Supplier Lead Time (L)</label>
+              <div class="input-wrapper">
+                <input type="number" id="input-leadtime" class="form-control no-prefix" value="5" oninput="recalculateInventorySystem()">
+              </div>
+              <div class="hint-text">Days required for raw material delivery & batch processing</div>
+            </div>
+
+            <div class="form-group">
+              <label for="input-ordercost">Ordering Cost (S)</label>
+              <div class="input-wrapper">
+                <span class="input-prefix">₹</span>
+                <input type="number" id="input-ordercost" class="form-control" value="1200" oninput="recalculateInventorySystem()">
+              </div>
+              <div class="hint-text">Cost per purchase order (administrative + logistics)</div>
+            </div>
+
+            <div class="form-group">
+              <label for="input-holdingcost">Holding Cost per Unit/Year (H)</label>
+              <div class="input-wrapper">
+                <span class="input-prefix">₹</span>
+                <input type="number" id="input-holdingcost" class="form-control" value="1.80" step="0.1" oninput="recalculateInventorySystem()">
+              </div>
+              <div class="hint-text">Warehousing, climate control, leakage & shelf-life risk</div>
+            </div>
+
+            <div class="form-group">
+              <label for="input-safetystock">Safety Stock Buffer</label>
+              <div class="input-wrapper">
+                <input type="number" id="input-safetystock" class="form-control no-prefix" value="2500" oninput="recalculateInventorySystem()">
+              </div>
+              <div class="hint-text">Extra cushion for potato crop supply disruptions</div>
+            </div>
+
+            <div class="form-group">
+              <label for="input-workingdays">Working Days / Year</label>
+              <div class="input-wrapper">
+                <input type="number" id="input-workingdays" class="form-control no-prefix" value="312" oninput="recalculateInventorySystem()">
+              </div>
+            </div>
+
+            <div class="assumption-box">
+              <div class="assumption-title">EOQ & ROP Explicit Assumptions</div>
+              • <strong>Demand Rate:</strong> Assumed steady & continuous across 312 operating days.<br>
+              • <strong>Lead Time:</strong> Assumed constant (5 days) from PepsiCo potato aggregators.<br>
+              • <strong>Ordering Cost:</strong> Fixed administrative & transport cost per PO.<br>
+              • <strong>Holding Cost:</strong> Calculated based on storage footprint and crisp freshness preservation.<br>
+              • <strong>Max Stock Level:</strong> Calculated as ROP + EOQ = Maximum operational limit.
+            </div>
+          </div>
+
+          <!-- EOQ / ROP COMPUTED SUMMARY CARD -->
+          <div class="card">
+            <div class="card-title">Computed Inventory Parameters</div>
+            <table style="font-size:0.85rem;">
+              <tr>
+                <td>Daily Demand (d):</td>
+                <td class="mono" style="font-weight:700;" id="calc-daily-demand">2,500 units</td>
+              </tr>
+              <tr>
+                <td>Economic Order Qty (EOQ):</td>
+                <td class="mono" style="font-weight:700; color:var(--lays-red);" id="calc-eoq">32,249 units</td>
+              </tr>
+              <tr>
+                <td>Reorder Point (ROP):</td>
+                <td class="mono" style="font-weight:700; color:var(--lays-red);" id="calc-rop">15,000 units</td>
+              </tr>
+              <tr>
+                <td>Max Stock Level:</td>
+                <td class="mono" style="font-weight:700;" id="calc-max-stock">47,249 units</td>
+              </tr>
+            </table>
+          </div>
+        </aside>
+
+        <!-- RIGHT: REPORTS, VISUALIZATIONS & LEDGER -->
+        <div>
+          
+          <!-- VISUAL STOCK STATUS BAR CARD -->
+          <div class="card">
+            <div class="card-title">Visual Stock Status Monitor</div>
+            <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:600; margin-bottom:8px;">
+              <span>Current Physical Stock: <strong id="status-curr-qty" style="color:var(--lays-red); font-size:1.1rem;">0</strong> packs</span>
+              <span>Status: <span id="status-text-badge" class="brand-badge" style="font-size:0.75rem; padding:2px 10px;">HEALTHY</span></span>
+            </div>
+
+            <div class="stock-visualizer">
+              <div class="stock-bar-bg">
+                <div id="stock-bar-fill" class="stock-bar-fill" style="width: 50%;"></div>
+                
+                <!-- ROP Marker -->
+                <div id="rop-marker" class="marker rop-marker" style="left: 30%;">
+                  <div class="marker-label" id="rop-marker-label">ROP: 15,000</div>
+                </div>
+
+                <!-- MAX Marker -->
+                <div id="max-marker" class="marker" style="left: 85%;">
+                  <div class="marker-label" id="max-marker-label">MAX: 47,249</div>
+                </div>
+              </div>
+            </div>
+            <div style="font-size:0.75rem; color:var(--lays-muted); text-align:right; margin-top:12px;">
+              Scale shows headroom ~15% beyond Maximum Stock Level to prevent right-edge clipping.
+            </div>
+          </div>
+
+          <!-- COMPARATIVE VALUATION & ABC ANALYSIS ROW -->
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px;">
+            <!-- COMPARATIVE VALUATION REPORT -->
+            <div class="card">
+              <div class="card-title">Valuation Comparison Report</div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Method</th>
+                    <th>Ending Stock Val</th>
+                    <th>COGS (Period)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr id="row-val-fifo">
+                    <td><strong>FIFO</strong></td>
+                    <td class="mono" id="val-fifo-stock">₹0.00</td>
+                    <td class="mono" id="val-fifo-cogs">₹0.00</td>
+                  </tr>
+                  <tr id="row-val-lifo">
+                    <td><strong>LIFO</strong></td>
+                    <td class="mono" id="val-lifo-stock">₹0.00</td>
+                    <td class="mono" id="val-lifo-cogs">₹0.00</td>
+                  </tr>
+                  <tr id="row-val-wac">
+                    <td><strong>Weighted Avg (WAC)</strong></td>
+                    <td class="mono" id="val-wac-stock">₹0.00</td>
+                    <td class="mono" id="val-wac-cogs">₹0.00</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="hint-text" style="margin-top:10px;">
+                Active method selected in sidebar drives the Stock Ledger calculations.
+              </div>
+            </div>
+
+            <!-- ABC ANALYSIS CARD -->
+            <div class="card">
+              <div class="card-title">Component ABC Value Tiering</div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Tier</th>
+                    <th>Component Category</th>
+                    <th>% Value</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><span style="background:#DC3545; color:white; padding:2px 6px; border-radius:4px; font-weight:700; font-size:0.75rem;">Category A</span></td>
+                    <td>Raw Potato Crop & Special Frying Oil</td>
+                    <td><strong>62.5%</strong></td>
+                  </tr>
+                  <tr>
+                    <td><span style="background:#FFC107; color:black; padding:2px 6px; border-radius:4px; font-weight:700; font-size:0.75rem;">Category B</span></td>
+                    <td>Nitrogen Gas Foil Packaging</td>
+                    <td><strong>22.3%</strong></td>
+                  </tr>
+                  <tr>
+                    <td><span style="background:#17A2B8; color:white; padding:2px 6px; border-radius:4px; font-weight:700; font-size:0.75rem;">Category C</span></td>
+                    <td>Seasoning Mix, Salt & Outer Shipping Cartons</td>
+                    <td><strong>15.2%</strong></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- TRANSACTION FORM & LEDGER TABLE -->
+          <div class="card">
+            <div class="card-title">
+              <span>Stock Movement Ledger (30-Day Period)</span>
+              <button class="btn btn-primary" onclick="toggleAddForm()">+ Add Transaction</button>
+            </div>
+
+            <!-- ADD TRANSACTION INLINE FORM -->
+            <div id="add-transaction-form" style="display:none; background:#F8F5EF; padding:16px; border-radius:8px; margin-bottom:16px; border:1px solid var(--lays-border);">
+              <h4 style="margin-bottom:12px; font-size:0.9rem;">Record New Stock Movement</h4>
+              <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:12px;">
+                <div>
+                  <label style="font-size:0.75rem; font-weight:700;">Date</label>
+                  <input type="date" id="new-date" class="form-control no-prefix">
+                </div>
+                <div>
+                  <label style="font-size:0.75rem; font-weight:700;">Type</label>
+                  <select id="new-type" class="form-control no-prefix" onchange="handleNewTypeChange()">
+                    <option value="IN">PURCHASE (IN)</option>
+                    <option value="OUT">SALE / ISSUE (OUT)</option>
+                    <option value="OPENING">OPENING STOCK</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="font-size:0.75rem; font-weight:700;">Quantity (Packs)</label>
+                  <input type="number" id="new-qty" class="form-control no-prefix" placeholder="e.g. 5000">
+                </div>
+                <div id="new-cost-group">
+                  <label style="font-size:0.75rem; font-weight:700;">Unit Cost (₹)</label>
+                  <input type="number" id="new-cost" class="form-control no-prefix" step="0.1" placeholder="e.g. 11.20">
+                </div>
+                <div>
+                  <label style="font-size:0.75rem; font-weight:700;">Reference / Batch</label>
+                  <input type="text" id="new-ref" class="form-control no-prefix" placeholder="PO / Batch #">
+                </div>
+              </div>
+              <div style="margin-top:12px; text-align:right;">
+                <button class="btn btn-secondary" onclick="toggleAddForm()">Cancel</button>
+                <button class="btn btn-primary" onclick="submitNewTransaction()">Save Movement</button>
+              </div>
+            </div>
+
+            <!-- LEDGER TABLE -->
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Date</th>
+                    <th>Ref / Batch</th>
+                    <th>Type</th>
+                    <th>Qty IN/OUT</th>
+                    <th>Unit Cost (₹)</th>
+                    <th>Total Value (₹)</th>
+                    <th>Stock Bal (Qty)</th>
+                    <th>Stock Bal (Val)</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="ledger-tbody">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- JAVASCRIPT CODE LOGIC -->
+  <script>
+    /* ==========================================================================
+       GLOBAL INITIAL SEED DATA & CONSTANTS
+       ========================================================================== */
+    
+    // Seeded 30-day Transaction Ledger for Lay's 50g Packs
+    let ledgerData = [
+      { id: 1, date: '2026-07-01', ref: 'BATCH-2026-01', type: 'OPENING', qty: 12000, unitCost: 11.00 },
+      { id: 2, date: '2026-07-03', ref: 'PO-LAYS-8801', type: 'IN', qty: 15000, unitCost: 11.10 },
+      { id: 3, date: '2026-07-05', ref: 'INV-DIST-101', type: 'OUT', qty: 8000, unitCost: 0 },
+      { id: 4, date: '2026-07-08', ref: 'PO-LAYS-8802', type: 'IN', qty: 20000, unitCost: 11.20 },
+      { id: 5, date: '2026-07-11', ref: 'INV-DIST-102', type: 'OUT', qty: 14000, unitCost: 0 },
+      { id: 6, date: '2026-07-14', ref: 'PO-LAYS-8803', type: 'IN', qty: 18000, unitCost: 11.25 },
+      { id: 7, date: '2026-07-17', ref: 'INV-DIST-103', type: 'OUT', qty: 16000, unitCost: 0 },
+      { id: 8, date: '2026-07-20', ref: 'PO-LAYS-8804', type: 'IN', qty: 10000, unitCost: 11.30 },
+      { id: 9, date: '2026-07-22', ref: 'INV-DIST-104', type: 'OUT', qty: 12000, unitCost: 0 },
+      { id: 10, date: '2026-07-25', ref: 'PO-LAYS-8805', type: 'IN', qty: 15000, unitCost: 11.20 },
+      { id: 11, date: '2026-07-28', ref: 'INV-DIST-105', type: 'OUT', qty: 9000, unitCost: 0 },
+      { id: 12, date: '2026-07-30', ref: 'INV-DIST-106', type: 'OUT', qty: 7000, unitCost: 0 }
+    ];
+
+    let editingRowId = null;
+
+    // Chart instances
+    let cvpChartInstance = null;
+    let donutChartInstance = null;
+    let stackedBarChartInstance = null;
+
+    /* ==========================================================================
+       TAB SWITCHING
+       ========================================================================== */
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+      if (tabName === 'cvp') {
+        document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        document.getElementById('cvp-tab').classList.add('active');
+        updateCVP();
+      } else {
+        document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        document.getElementById('inventory-tab').classList.add('active');
+        recalculateInventorySystem();
+      }
+    }
+
+    /* ==========================================================================
+       TASK 1: CVP CALCULATIONS & CHARTS
+       ========================================================================== */
+    function updateCVP() {
+      // Inputs
+      const price = parseFloat(document.getElementById('input-price').value) || 0;
+      const vc = parseFloat(document.getElementById('input-vc').value) || 0;
+      const fc = parseFloat(document.getElementById('input-fc').value) || 0;
+      const salesVolume = parseFloat(document.getElementById('input-sales').value) || 0;
+      const targetProfit = parseFloat(document.getElementById('input-target').value) || 0;
+
+      // Basic CVP Formulas
+      const cmUnit = price - vc;
+      const cmRatio = price > 0 ? (cmUnit / price) : 0;
+      
+      const bepUnits = cmUnit > 0 ? (fc / cmUnit) : 0;
+      const bepRevenue = bepUnits * price;
+
+      const currentRevenue = salesVolume * price;
+      const mosUnits = salesVolume - bepUnits;
+      const mosVal = mosUnits * price;
+      const mosPct = salesVolume > 0 ? (mosUnits / salesVolume) * 100 : 0;
+
+      const totalVC = salesVolume * vc;
+      const totalCM = salesVolume * cmUnit;
+      const netProfit = totalCM - fc;
+      const dol = netProfit > 0 ? (totalCM / netProfit) : 0;
+
+      const targetUnits = cmUnit > 0 ? ((fc + targetProfit) / cmUnit) : 0;
+      const targetRevenue = targetUnits * price;
+
+      // Update UI Scorecards & Labels
+      document.getElementById('card-bep-units').innerText = Math.round(bepUnits).toLocaleString('en-IN') + ' packs';
+      document.getElementById('card-bep-revenue').innerText = '₹' + Math.round(bepRevenue).toLocaleString('en-IN');
+      document.getElementById('card-cm-ratio').innerText = (cmRatio * 100).toFixed(1) + '%';
+      
+      const mosFormatted = `${Math.round(mosUnits).toLocaleString('en-IN')} units (${mosPct.toFixed(1)}%)`;
+      document.getElementById('card-mos-val').innerText = mosFormatted;
+
+      document.getElementById('calc-cm-unit').innerText = '₹' + cmUnit.toFixed(2);
+      document.getElementById('calc-dol').innerText = dol > 0 ? dol.toFixed(2) : 'N/A (Loss)';
+      document.getElementById('calc-target-units').innerText = Math.ceil(targetUnits).toLocaleString('en-IN') + ' units';
+      document.getElementById('calc-target-rev').innerText = '₹' + Math.round(targetRevenue).toLocaleString('en-IN');
+
+      // Update Sensitivity Analysis Table
+      updateSensitivityTable(price, vc, fc);
+
+      // Render Charts
+      renderCVPChart(price, vc, fc, bepUnits, salesVolume);
+      renderDonutChart(price, vc, cmUnit);
+      renderStackedBarChart(price, vc, fc, salesVolume, netProfit);
+    }
+
+    function updateSensitivityTable(price, vc, fc) {
+      const percentages = [-0.20, -0.10, -0.05, 0, 0.05, 0.10, 0.20];
+      const tbody = document.getElementById('sensitivity-tbody');
+      tbody.innerHTML = '';
+
+      // Helper function to calc BEP
+      const calcBEP = (p, v, f) => {
+        const cm = p - v;
+        return cm > 0 ? Math.round(f / cm) : 'N/A';
+      };
+
+      // Base BEP
+      const baseBEP = calcBEP(price, vc, fc);
+
+      // Row 1: Selling Price Variation
+      let rowPrice = `<tr><td><strong>Selling Price (₹)</strong></td>`;
+      percentages.forEach(pct => {
+        const pMod = price * (1 + pct);
+        const bep = calcBEP(pMod, vc, fc);
+        const isBase = pct === 0;
+        rowPrice += `<td class="mono ${isBase ? 'row-highlight' : ''}">${typeof bep === 'number' ? bep.toLocaleString('en-IN') : bep}</td>`;
+      });
+      rowPrice += `</tr>`;
+
+      // Row 2: Variable Cost Variation
+      let rowVC = `<tr><td><strong>Variable Cost (₹)</strong></td>`;
+      percentages.forEach(pct => {
+        const vMod = vc * (1 + pct);
+        const bep = calcBEP(price, vMod, fc);
+        const isBase = pct === 0;
+        rowVC += `<td class="mono ${isBase ? 'row-highlight' : ''}">${typeof bep === 'number' ? bep.toLocaleString('en-IN') : bep}</td>`;
+      });
+      rowVC += `</tr>`;
+
+      // Row 3: Fixed Cost Variation
+      let rowFC = `<tr><td><strong>Fixed Costs (₹)</strong></td>`;
+      percentages.forEach(pct => {
+        const fMod = fc * (1 + pct);
+        const bep = calcBEP(price, vc, fMod);
+        const isBase = pct === 0;
+        rowFC += `<td class="mono ${isBase ? 'row-highlight' : ''}">${typeof bep === 'number' ? bep.toLocaleString('en-IN') : bep}</td>`;
+      });
+      rowFC += `</tr>`;
+
+      tbody.innerHTML = rowPrice + rowVC + rowFC;
+    }
+
+    /* ==========================================================================
+       CHART RENDERING (CHART.JS)
+       ========================================================================== */
+    function renderCVPChart(price, vc, fc, bepUnits, currentSales) {
+      const ctx = document.getElementById('cvpChart').getContext('2d');
+      if (cvpChartInstance) cvpChartInstance.destroy();
+
+      const maxX = Math.max(bepUnits * 2, currentSales * 1.2, 10000);
+      const xPoints = [0, bepUnits, maxX];
+
+      // Continuous Linear Dataset Objects {x, y}
+      const dataFixedCost = xPoints.map(x => ({ x: x, y: fc }));
+      const dataTotalCost = xPoints.map(x => ({ x: x, y: fc + (vc * x) }));
+      const dataTotalRevenue = xPoints.map(x => ({ x: x, y: price * x }));
+
+      cvpChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          datasets: [
+            {
+              label: 'Fixed Cost (₹)',
+              data: dataFixedCost,
+              borderColor: '#6C757D',
+              borderDash: [6, 6],
+              borderWidth: 2,
+              pointRadius: 0,
+              fill: false
+            },
+            {
+              label: 'Total Cost (₹)',
+              data: dataTotalCost,
+              borderColor: '#E31837',
+              borderWidth: 3,
+              pointRadius: 0,
+              fill: false
+            },
+            {
+              label: 'Total Revenue (₹)',
+              data: dataTotalRevenue,
+              borderColor: '#28A745',
+              borderWidth: 3,
+              pointRadius: 0,
+              fill: {
+                target: 1, // Fill relative to Total Cost dataset index 1
+                above: 'rgba(40, 167, 69, 0.15)', // Profit Area
+                below: 'rgba(227, 24, 55, 0.15)'  // Loss Area
+              }
+            },
+            {
+              label: 'Break-Even Point',
+              data: [{ x: bepUnits, y: bepUnits * price }],
+              borderColor: '#FDB813',
+              backgroundColor: '#1E1005',
+              pointRadius: 8,
+              pointHoverRadius: 10,
+              showLine: false
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              type: 'linear',
+              position: 'bottom',
+              title: { display: true, text: 'Sales Volume (Units / Packs)', font: { weight: 'bold' } },
+              ticks: { callback: value => value.toLocaleString('en-IN') }
+            },
+            y: {
+              title: { display: true, text: 'Amount (₹)', font: { weight: 'bold' } },
+              ticks: { callback: value => '₹' + (value / 1000).toFixed(0) + 'k' }
+            }
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `${context.dataset.label}: ₹${Math.round(context.parsed.y).toLocaleString('en-IN')} @ ${Math.round(context.parsed.x).toLocaleString('en-IN')} units`;
+                }
+              }
+            }
+          }
+        }
+      });
+
+      document.getElementById('cvp-chart-caption').innerText = 
+        `Break-Even Point reached at ${Math.round(bepUnits).toLocaleString('en-IN')} packs (Revenue ₹${Math.round(bepUnits * price).toLocaleString('en-IN')}). Current volume is ${currentSales.toLocaleString('en-IN')} packs.`;
+    }
+
+    function renderDonutChart(price, vc, cm) {
+      const ctx = document.getElementById('donutChart').getContext('2d');
+      if (donutChartInstance) donutChartInstance.destroy();
+
+      donutChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Variable Cost per Unit', 'Contribution Margin per Unit'],
+          datasets: [{
+            data: [vc, cm],
+            backgroundColor: ['#E31837', '#FDB813'],
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' }
+          }
+        }
+      });
+
+      const cmPct = price > 0 ? ((cm / price) * 100).toFixed(1) : 0;
+      document.getElementById('donut-caption').innerText = 
+        `Selling Price ₹${price.toFixed(2)} splits into ₹${vc.toFixed(2)} Variable Cost (${(100 - cmPct).toFixed(1)}%) and ₹${cm.toFixed(2)} Contribution Margin (${cmPct}%).`;
+    }
+
+    function renderStackedBarChart(price, vc, fc, salesVolume, netProfit) {
+      const ctx = document.getElementById('stackedBarChart').getContext('2d');
+      if (stackedBarChartInstance) stackedBarChartInstance.destroy();
+
+      const totalRevenue = salesVolume * price;
+      const totalVC = salesVolume * vc;
+
+      let stackedData = [];
+      let stackedLabels = [];
+      let colors = [];
+
+      if (netProfit >= 0) {
+        stackedLabels = ['Variable Cost', 'Fixed Cost', 'Net Profit'];
+        stackedData = [totalVC, fc, netProfit];
+        colors = ['#E31837', '#6C757D', '#28A745'];
+      } else {
+        // In loss state
+        stackedLabels = ['Variable Cost', 'Fixed Cost'];
+        stackedData = [totalVC, fc];
+        colors = ['#E31837', '#6C757D'];
+      }
+
+      stackedBarChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Total Revenue', 'Cost + Profit Structure'],
+          datasets: [
+            {
+              label: 'Total Revenue',
+              data: [totalRevenue, 0],
+              backgroundColor: '#FDB813'
+            },
+            {
+              label: stackedLabels[0],
+              data: [0, stackedData[0]],
+              backgroundColor: colors[0]
+            },
+            {
+              label: stackedLabels[1],
+              data: [0, stackedData[1]],
+              backgroundColor: colors[1]
+            },
+            {
+              label: stackedLabels[2] || '',
+              data: [0, stackedData[2] || 0],
+              backgroundColor: colors[2] || '#000000'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { stacked: true },
+            y: { 
+              stacked: true,
+              ticks: { callback: value => '₹' + (value / 1000).toFixed(0) + 'k' }
+            }
+          },
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+
+      const statusText = netProfit >= 0 ? `Net Profit of ₹${Math.round(netProfit).toLocaleString('en-IN')}` : `Net Loss of ₹${Math.round(Math.abs(netProfit)).toLocaleString('en-IN')}`;
+      document.getElementById('stacked-caption').innerText = 
+        `At ${salesVolume.toLocaleString('en-IN')} units: Total Revenue = ₹${Math.round(totalRevenue).toLocaleString('en-IN')} vs. Total Costs = ₹${Math.round(totalVC + fc).toLocaleString('en-IN')} (${statusText}).`;
+    }
+
+
+    /* ==========================================================================
+       TASK 2: INVENTORY MANAGEMENT ENGINE (FIFO / LIFO / WAC + CRUD)
+       ========================================================================== */
+
+    function recalculateInventorySystem() {
+      // 1. Get EOQ/ROP Inputs
+      const demand = parseFloat(document.getElementById('input-demand').value) || 0;
+      const leadTime = parseFloat(document.getElementById('input-leadtime').value) || 0;
+      const orderCost = parseFloat(document.getElementById('input-ordercost').value) || 0;
+      const holdingCost = parseFloat(document.getElementById('input-holdingcost').value) || 0;
+      const safetyStock = parseFloat(document.getElementById('input-safetystock').value) || 0;
+      const workingDays = parseFloat(document.getElementById('input-workingdays').value) || 312;
+
+      // EOQ & ROP Calculations
+      const dailyDemand = demand / workingDays;
+      const eoq = holdingCost > 0 ? Math.sqrt((2 * demand * orderCost) / holdingCost) : 0;
+      const rop = (dailyDemand * leadTime) + safetyStock;
+      const maxStock = rop + eoq;
+
+      document.getElementById('calc-daily-demand').innerText = Math.round(dailyDemand).toLocaleString('en-IN') + ' units/day';
+      document.getElementById('calc-eoq').innerText = Math.round(eoq).toLocaleString('en-IN') + ' packs';
+      document.getElementById('calc-rop').innerText = Math.round(rop).toLocaleString('en-IN') + ' packs';
+      document.getElementById('calc-max-stock').innerText = Math.round(maxStock).toLocaleString('en-IN') + ' packs';
+
+      // 2. Evaluate Comparative Valuation Methods
+      const fifoRes = runValuation('FIFO');
+      const lifoRes = runValuation('LIFO');
+      const wacRes = runValuation('WAC');
+
+      document.getElementById('val-fifo-stock').innerText = '₹' + fifoRes.closingValue.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+      document.getElementById('val-fifo-cogs').innerText = '₹' + fifoRes.cogs.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+      document.getElementById('val-lifo-stock').innerText = '₹' + lifoRes.closingValue.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+      document.getElementById('val-lifo-cogs').innerText = '₹' + lifoRes.cogs.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+      document.getElementById('val-wac-stock').innerText = '₹' + wacRes.closingValue.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+      document.getElementById('val-wac-cogs').innerText = '₹' + wacRes.cogs.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+      // Highlight primary active valuation
+      const activeMethod = document.getElementById('inv-valuation-method').value;
+      ['row-val-fifo', 'row-val-lifo', 'row-val-wac'].forEach(id => document.getElementById(id).style.background = 'transparent');
+      if (activeMethod === 'FIFO') document.getElementById('row-val-fifo').style.background = '#FFF3CD';
+      if (activeMethod === 'LIFO') document.getElementById('row-val-lifo').style.background = '#FFF3CD';
+      if (activeMethod === 'WAC') document.getElementById('row-val-wac').style.background = '#FFF3CD';
+
+      // 3. Render Stock Ledger & Status Visualizer based on Primary Method
+      const primaryRes = activeMethod === 'FIFO' ? fifoRes : (activeMethod === 'LIFO' ? lifoRes : wacRes);
+      renderLedgerTable(primaryRes.ledgerDetails);
+
+      // Current Physical Stock Level
+      const currentStock = primaryRes.closingQty;
+      document.getElementById('status-curr-qty').innerText = currentStock.toLocaleString('en-IN');
+
+      // Update Health Alert & Status Bar markers dynamically
+      updateHealthAndMarkers(currentStock, rop, maxStock);
+    }
+
+    /* Core Multi-Method Valuation Engine */
+    function runValuation(method) {
+      // Sort copy of ledger chronologically
+      let sorted = [...ledgerData].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      let batches = []; // Array of { qty, cost }
+      let totalQtyHand = 0;
+      let totalValHand = 0;
+      let cogs = 0;
+
+      let ledgerDetails = [];
+
+      sorted.forEach((item, index) => {
+        let txQty = item.qty;
+        let txUnitCost = item.unitCost;
+        let txTotalVal = 0;
+
+        if (item.type === 'OPENING' || item.type === 'IN') {
+          txTotalVal = txQty * txUnitCost;
+          batches.push({ qty: txQty, cost: txUnitCost });
+          totalQtyHand += txQty;
+          totalValHand += txTotalVal;
+        } 
+        else if (item.type === 'OUT') {
+          let qtyToIssue = txQty;
+          let issueCostTotal = 0;
+
+          if (method === 'FIFO') {
+            for (let i = 0; i < batches.length && qtyToIssue > 0; i++) {
+              let b = batches[i];
+              if (b.qty > 0) {
+                let take = Math.min(b.qty, qtyToIssue);
+                issueCostTotal += take * b.cost;
+                b.qty -= take;
+                qtyToIssue -= take;
+              }
+            }
+          } 
+          else if (method === 'LIFO') {
+            for (let i = batches.length - 1; i >= 0 && qtyToIssue > 0; i--) {
+              let b = batches[i];
+              if (b.qty > 0) {
+                let take = Math.min(b.qty, qtyToIssue);
+                issueCostTotal += take * b.cost;
+                b.qty -= take;
+                qtyToIssue -= take;
+              }
+            }
+          } 
+          else if (method === 'WAC') {
+            let avgCost = totalQtyHand > 0 ? (totalValHand / totalQtyHand) : 0;
+            issueCostTotal = qtyToIssue * avgCost;
+            
+            // Deduct uniformly from batches
+            let remaining = qtyToIssue;
+            for (let i = 0; i < batches.length && remaining > 0; i++) {
+              let take = Math.min(batches[i].qty, remaining);
+              batches[i].qty -= take;
+              remaining -= take;
+            }
+          }
+
+          txTotalVal = issueCostTotal;
+          txUnitCost = txQty > 0 ? (txTotalVal / txQty) : 0;
+          cogs += txTotalVal;
+
+          totalQtyHand -= txQty;
+          totalValHand -= txTotalVal;
+          if (totalValHand < 0) totalValHand = 0;
+        }
+
+        ledgerDetails.push({
+          ...item,
+          computedCost: txUnitCost,
+          computedTotalVal: txTotalVal,
+          runningQty: totalQtyHand,
+          runningVal: totalValHand
+        });
+      });
+
+      return {
+        closingQty: totalQtyHand,
+        closingValue: totalValHand,
+        cogs: cogs,
+        ledgerDetails: ledgerDetails
+      };
+    }
+
+    /* Render Stock Ledger Table */
+    function renderLedgerTable(details) {
+      const tbody = document.getElementById('ledger-tbody');
+      tbody.innerHTML = '';
+
+      details.forEach((row, idx) => {
+        const isEditing = editingRowId === row.id;
+
+        if (isEditing) {
+          tbody.innerHTML += `
+            <tr class="inline-edit-row" style="background:#FFF3CD;">
+              <td>${idx + 1}</td>
+              <td><input type="date" id="edit-date-${row.id}" value="${row.date}"></td>
+              <td><input type="text" id="edit-ref-${row.id}" value="${row.ref}"></td>
+              <td>
+                <select id="edit-type-${row.id}" onchange="toggleEditCostVisibility(${row.id})">
+                  <option value="IN" ${row.type === 'IN' ? 'selected' : ''}>IN</option>
+                  <option value="OUT" ${row.type === 'OUT' ? 'selected' : ''}>OUT</option>
+                  <option value="OPENING" ${row.type === 'OPENING' ? 'selected' : ''}>OPENING</option>
+                </select>
+              </td>
+              <td><input type="number" id="edit-qty-${row.id}" value="${row.qty}"></td>
+              <td><input type="number" id="edit-cost-${row.id}" step="0.1" value="${row.unitCost}" ${row.type === 'OUT' ? 'disabled' : ''}></td>
+              <td colspan="3" style="font-size:0.75rem; color:var(--lays-muted);">Live recalculating...</td>
+              <td>
+                <button class="btn btn-primary btn-sm" onclick="saveInlineEdit(${row.id})">Save</button>
+                <button class="btn btn-secondary btn-sm" onclick="cancelInlineEdit()">X</button>
+              </td>
+            </tr>
+          `;
+        } else {
+          const typeBadge = row.type === 'IN' ? '<span style="color:#28A745; font-weight:700;">IN</span>' :
+                          (row.type === 'OUT' ? '<span style="color:#DC3545; font-weight:700;">OUT</span>' :
+                          '<span style="color:#17A2B8; font-weight:700;">OPENING</span>');
+
+          tbody.innerHTML += `
+            <tr>
+              <td>${idx + 1}</td>
+              <td>${row.date}</td>
+              <td>${row.ref}</td>
+              <td>${typeBadge}</td>
+              <td class="mono">${row.qty.toLocaleString('en-IN')}</td>
+              <td class="mono">₹${row.computedCost.toFixed(2)}</td>
+              <td class="mono">₹${Math.round(row.computedTotalVal).toLocaleString('en-IN')}</td>
+              <td class="mono" style="font-weight:700;">${row.runningQty.toLocaleString('en-IN')}</td>
+              <td class="mono">₹${Math.round(row.runningVal).toLocaleString('en-IN')}</td>
+              <td>
+                <button class="btn btn-secondary btn-sm" onclick="startInlineEdit(${row.id})">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteTransaction(${row.id})">Del</button>
+              </td>
+            </tr>
+          `;
+        }
+      });
+    }
+
+    /* Dynamic UI Health & Stock Bar Refresh */
+    function updateHealthAndMarkers(currentStock, rop, maxStock) {
+      const banner = document.getElementById('inventory-health-banner');
+      const icon = document.getElementById('health-icon');
+      const text = document.getElementById('health-text');
+      const statusBadge = document.getElementById('status-text-badge');
+      const stockBarFill = document.getElementById('stock-bar-fill');
+
+      const isWarning = currentStock < rop;
+
+      if (isWarning) {
+        banner.className = 'alert-banner warning';
+        icon.innerText = '⚠️';
+        text.innerText = `LOW STOCK ALERT: Current stock (${currentStock.toLocaleString('en-IN')} packs) has fallen BELOW the Reorder Point (${Math.round(rop).toLocaleString('en-IN')} packs). Trigger Purchase Order immediately!`;
+        statusBadge.innerText = 'REORDER REQUIRED';
+        statusBadge.style.backgroundColor = 'var(--lays-red)';
+        stockBarFill.className = 'stock-bar-fill warning';
+      } else {
+        banner.className = 'alert-banner healthy';
+        icon.innerText = '✓';
+        text.innerText = `System Healthy: Physical stock (${currentStock.toLocaleString('en-IN')} packs) is above the Reorder Point (${Math.round(rop).toLocaleString('en-IN')} packs).`;
+        statusBadge.innerText = 'HEALTHY';
+        statusBadge.style.backgroundColor = 'var(--lays-success)';
+        stockBarFill.className = 'stock-bar-fill';
+      }
+
+      // Bar Scale with ~15% headroom above Max Stock Level
+      const scaleMax = maxStock * 1.15;
+      const fillPct = Math.min(100, Math.max(0, (currentStock / scaleMax) * 100));
+      const ropPct = Math.min(100, (rop / scaleMax) * 100);
+      const maxPct = Math.min(100, (maxStock / scaleMax) * 100);
+
+      stockBarFill.style.width = fillPct + '%';
+
+      // Markers positioning
+      document.getElementById('rop-marker').style.left = ropPct + '%';
+      document.getElementById('rop-marker-label').innerText = 'ROP: ' + Math.round(rop).toLocaleString('en-IN');
+
+      document.getElementById('max-marker').style.left = maxPct + '%';
+      document.getElementById('max-marker-label').innerText = 'MAX: ' + Math.round(maxStock).toLocaleString('en-IN');
+    }
+
+
+    /* ==========================================================================
+       CRUD OPERATIONS & VALIDATION
+       ========================================================================== */
+    function toggleAddForm() {
+      const form = document.getElementById('add-transaction-form');
+      form.style.display = form.style.display === 'none' ? 'block' : 'none';
+      if (form.style.display === 'block') {
+        document.getElementById('new-date').value = new Date().toISOString().split('T')[0];
+      }
+    }
+
+    function handleNewTypeChange() {
+      const type = document.getElementById('new-type').value;
+      const costGroup = document.getElementById('new-cost-group');
+      costGroup.style.display = type === 'OUT' ? 'none' : 'block';
+    }
+
+    function submitNewTransaction() {
+      const date = document.getElementById('new-date').value;
+      const type = document.getElementById('new-type').value;
+      const qty = parseInt(document.getElementById('new-qty').value) || 0;
+      const cost = parseFloat(document.getElementById('new-cost').value) || 0;
+      const ref = document.getElementById('new-ref').value || 'MANUAL-ENTRY';
+
+      if (!date || qty <= 0) {
+        alert('Please enter a valid date and quantity greater than 0.');
+        return;
+      }
+
+      // Rule: Only 1 OPENING stock entry
+      if (type === 'OPENING' && ledgerData.some(item => item.type === 'OPENING')) {
+        alert('Validation Error: Only one Opening Stock entry is allowed in the ledger sequence.');
+        return;
+      }
+
+      const newId = ledgerData.length > 0 ? Math.max(...ledgerData.map(i => i.id)) + 1 : 1;
+      const newItem = { id: newId, date: date, ref: ref, type: type, qty: qty, unitCost: type === 'OUT' ? 0 : cost };
+
+      // Negative stock balance validation test
+      const tempLedger = [...ledgerData, newItem];
+      if (wouldSequenceCauseNegativeStock(tempLedger)) {
+        alert('Action Blocked: This transaction would cause running stock balance to drop below ZERO at some point in time.');
+        return;
+      }
+
+      ledgerData.push(newItem);
+      toggleAddForm();
+      recalculateInventorySystem();
+    }
+
+    function startInlineEdit(id) {
+      editingRowId = id;
+      recalculateInventorySystem();
+    }
+
+    function cancelInlineEdit() {
+      editingRowId = null;
+      recalculateInventorySystem();
+    }
+
+    function toggleEditCostVisibility(id) {
+      const type = document.getElementById(`edit-type-${id}`).value;
+      const costInput = document.getElementById(`edit-cost-${id}`);
+      costInput.disabled = (type === 'OUT');
+    }
+
+    function saveInlineEdit(id) {
+      const date = document.getElementById(`edit-date-${id}`).value;
+      const ref = document.getElementById(`edit-ref-${id}`).value;
+      const type = document.getElementById(`edit-type-${id}`).value;
+      const qty = parseInt(document.getElementById(`edit-qty-${id}`).value) || 0;
+      const cost = parseFloat(document.getElementById(`edit-cost-${id}`).value) || 0;
+
+      if (!date || qty <= 0) {
+        alert('Invalid date or quantity.');
+        return;
+      }
+
+      if (type === 'OPENING' && ledgerData.some(i => i.type === 'OPENING' && i.id !== id)) {
+        alert('Validation Error: Only one Opening Stock entry is allowed in the ledger.');
+        return;
+      }
+
+      // Clone and test for negative balance
+      let tempLedger = ledgerData.map(item => {
+        if (item.id === id) {
+          return { id, date, ref, type, qty, unitCost: type === 'OUT' ? 0 : cost };
+        }
+        return item;
+      });
+
+      if (wouldSequenceCauseNegativeStock(tempLedger)) {
+        alert('Action Blocked: Editing this entry causes running stock balance to drop below zero!');
+        return;
+      }
+
+      // Save changes
+      const idx = ledgerData.findIndex(i => i.id === id);
+      if (idx !== -1) {
+        ledgerData[idx] = { id, date, ref, type, qty, unitCost: type === 'OUT' ? 0 : cost };
+      }
+
+      editingRowId = null;
+      recalculateInventorySystem();
+    }
+
+    function deleteTransaction(id) {
+      const item = ledgerData.find(i => i.id === id);
+      if (item && item.type === 'OPENING') {
+        alert('Validation Error: Cannot delete Opening Stock entry.');
+        return;
+      }
+
+      if (!confirm('Are you sure you want to delete this stock movement?')) return;
+
+      let tempLedger = ledgerData.filter(i => i.id !== id);
+      if (wouldSequenceCauseNegativeStock(tempLedger)) {
+        alert('Action Blocked: Deleting this entry would cause running stock balance to go negative downstream!');
+        return;
+      }
+
+      ledgerData = tempLedger;
+      recalculateInventorySystem();
+    }
+
+    function wouldSequenceCauseNegativeStock(ledgerArr) {
+      let sorted = [...ledgerArr].sort((a, b) => new Date(a.date) - new Date(b.date));
+      let running = 0;
+      for (let item of sorted) {
+        if (item.type === 'OPENING' || item.type === 'IN') {
+          running += item.qty;
+        } else if (item.type === 'OUT') {
+          running -= item.qty;
+        }
+        if (running < 0) return true;
+      }
+      return false;
+    }
+
+
+    /* ==========================================================================
+       INITIALIZATION ON PAGE LOAD
+       ========================================================================== */
+    window.addEventListener('DOMContentLoaded', () => {
+      updateCVP();
+      recalculateInventorySystem();
+    });
+  </script>
+</body>
+</html>
